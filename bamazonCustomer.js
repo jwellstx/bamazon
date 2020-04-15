@@ -41,10 +41,11 @@ connection.query("SELECT * FROM products", (err, rows) => {
         }
         else {
             var totalCost = response.numOfUnits * rows[response.id].price;
+            var product_sales = rows[response.id].product_sales + totalCost;
             console.log("Processing your request of (" + response.numOfUnits + ") " + rows[response.id].product_name);
 
-            connection.query("UPDATE products SET stock_quantity = ? WHERE product_name = ?",
-                [rows[response.id].stock_quantity - response.numOfUnits, rows[response.id].product_name],
+            connection.query("UPDATE products SET stock_quantity = ?, product_sales = ? WHERE product_name = ?",
+                [rows[response.id].stock_quantity - response.numOfUnits, product_sales, rows[response.id].product_name],
                 (err, results) => {
                     if (err) throw err;
                     console.log("Process successful! Total cost of items is: $" + totalCost);

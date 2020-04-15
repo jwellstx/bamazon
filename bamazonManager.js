@@ -19,7 +19,7 @@ inquirer.prompt([
         name: "choice"
     },
 ]).then(answer => {
-    switch(answer.choice) {
+    switch (answer.choice) {
         case "View Products for Sale":
             viewProductsForSale();
             break;
@@ -35,7 +35,7 @@ inquirer.prompt([
         default:
             console.log("No Valid options selected!"); // shouldnt be hit
     }
-    
+
 });
 
 function viewProductsForSale() {
@@ -91,38 +91,50 @@ function addToInventory() {
 
 function addNewProduct() {
     console.log("Attempting to add a new product to the database...");
-    inquirer.prompt([
-        {
-            type: "input",
-            message: "What is the product name?",
-            name: "productName"
-        },
-        {
-            type: "input",
-            message: "What department is this item located in?",
-            name: "department"
-        },
-        {
-            type: "input",
-            message: "What is the price of this item?",
-            name: "price"
-        },
-        {
-            type: "input",
-            message: "How much stock do you currently have?",
-            name: "stock"
-        },
-    ]).then(answer => {
-        connection.query("INSERT INTO products SET ?",
-        {
-            product_name: answer.productName,
-            department_name: answer.department,
-            price: answer.price,
-            stock_quantity: answer.stock
-        }, err => {
-            if (err) throw err;
-            console.log("Successfully added product:", answer.productName + ", department:", answer.department + ", price: $" + answer.price + ", quantity:", answer.stock);
-            connection.end();
-        })
+    connection.query("SELECT department_name FROM departments", (err, rows) => {
+        var deparments = rows.map(a => a.department_name);
+        inquirer.prompt([
+            {
+                type: "input",
+                message: "What is the product name?",
+                name: "productName"
+            },
+            {
+                type: "list",
+                message: "What department is this item located in?",
+                choices: deparments,
+                name: "department"
+            },
+            {
+                type: "input",
+                message: "What is the price of this item?",
+                name: "price",
+                validate: (value => {
+                    if (isNaN(value) == false) return true;
+                    else return false;
+                })
+            },
+            {
+                type: "input",
+                message: "How much stock do you currently have?",
+                name: "stock",
+                validate: (value => {
+                    if (isNaN(value) == false) return true;
+                    else return false;
+                })
+            },
+        ]).then(answer => {
+            connection.query("INSERT INTO products SET ?",
+                {
+                    product_name: answer.productName,
+                    department_name: answer.department,
+                    price: answer.price,
+                    stock_quantity: answer.stock
+                }, err => {
+                    if (err) throw err;
+                    console.log("Successfully added product:", answer.productName + ", department:", answer.department + ", price: $" + answer.price + ", quantity:", answer.stock);
+                    connection.end();
+                });
+        });
     });
 }
